@@ -1,0 +1,71 @@
+:root {
+  --green:       #1a3a1a;
+  --green-mid:   #2d5a2d;
+  --gold:        #c9a84c;
+  --gold-light:  #e8c96a;
+  --gold-pale:   #f5e8c0;
+  --cream:       #f8f4ec;
+  --ink:         #0b140b;
+  --fade:        #6b7a5a;
+  --glass:       rgba(255,255,255,0.05);
+  --glass-gold:  rgba(201,168,76,0.12);
+  --border:      rgba(201,168,76,0.18);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--ink);
+  color: var(--cream);
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 18px;
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { cursor: pointer; font-family: inherit; }
+img { display: block; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 2px; }
+
+/* Page fade animation */
+@keyframes pageFade {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter { animation: pageFade 0.35s ease forwards; }
+
+/* Sheet slide up animation */
+@keyframes sheetUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Notification drop */
+@keyframes notifDrop {
+  from { transform: translateX(-50%) translateY(-80px); opacity: 0; }
+  to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+}
+
+/* Logo glow pulse */
+@keyframes logoGlow {
+  from { filter: drop-shadow(0 0 18px rgba(201,168,76,0.2)); }
+  to   { filter: drop-shadow(0 0 48px rgba(201,168,76,0.55)); }
+}
+
+/* Grain noise overlay — applied via pseudo element in App */
+@keyframes grain {
+  0%, 100% { transform: translate(0,0); }
+  10%       { transform: translate(-2%,-3%); }
+  30%       { transform: translate(3%,2%); }
+  50%       { transform: translate(-1%,4%); }
+  70%       { transform: translate(4%,-2%); }
+  90%       { transform: translate(-3%,1%); }
+}
