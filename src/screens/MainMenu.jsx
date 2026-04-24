@@ -1,217 +1,345 @@
 // src/screens/MainMenu.jsx
 import { useState, useEffect } from "react";
-import { FIXTURES } from "../dataLoader.js";
+import { FIXTURES, PLAYERS } from "../dataLoader.js";
 
-const LOGO     = "/logo.png";
-const HOME_KIT = "/home-kit.png";
+const LOGO    = "/logo.png";
+const MENU_BG = "/menu-bg.jpg";   // ← drop your AI-generated image here
 
-// Derive quick season stats from fixture data
-function getSeasonRecord(fixtures) {
+function getRecord(fixtures) {
   const played = fixtures.filter(f => f.result);
   return {
-    W: played.filter(f => f.result === "W").length,
-    D: played.filter(f => f.result === "D").length,
-    L: played.filter(f => f.result === "L").length,
+    W:      played.filter(f => f.result === "W").length,
+    D:      played.filter(f => f.result === "D").length,
+    L:      played.filter(f => f.result === "L").length,
     played: played.length,
   };
 }
 
+const NAV = [
+  { icon: "📖", label: "Read the Story",     sub: "Chapters 1–4 available",   screen: "chapters", accent: "#c9a84c" },
+  { icon: "📅", label: "Fixtures & Results",  sub: "Season 2025–26",           screen: "fixtures", accent: "#5ada5a" },
+  { icon: "👥", label: "Squad & Staff",       sub: `${22} players · 1 coach`,  screen: "roster",   accent: "#6ab4e8" },
+  { icon: "👕", label: "Kit Room",            sub: "Home & Away",              screen: "kits",     accent: "#e87b6a" },
+  { icon: "📋", label: "Club Info",           sub: "124 years of history",     screen: "about",    accent: "#b46ae8" },
+];
+
 export default function MainMenu({ onGo }) {
-  const [visible, setVisible] = useState(false);
-  useEffect(() => { setTimeout(() => setVisible(true), 60); }, []);
+  const [mounted, setMounted]   = useState(false);
+  const [bgLoaded, setBgLoaded] = useState(false);
 
-  const rec = getSeasonRecord(FIXTURES);
+  useEffect(() => { setTimeout(() => setMounted(true), 40); }, []);
+
+  // Preload bg image
+  useEffect(() => {
+    const img = new Image();
+    img.src = MENU_BG;
+    img.onload  = () => setBgLoaded(true);
+    img.onerror = () => setBgLoaded(false);
+  }, []);
+
+  const rec       = getRecord(FIXTURES);
   const nextMatch = FIXTURES.find(f => !f.result);
-
-  const nav = [
-    { icon: "📖", label: "Read the Story",    sub: "Chapters 1–4 available",  screen: "chapters" },
-    { icon: "📅", label: "Fixtures & Results", sub: `${rec.played} played this season`, screen: "fixtures" },
-    { icon: "👥", label: "Squad & Staff",      sub: "Players · Coach",          screen: "roster"   },
-    { icon: "👕", label: "Kit Room",           sub: "Home & Away",              screen: "kits"     },
-    { icon: "📋", label: "Club Info",          sub: "History · 124 years",      screen: "about"    },
-  ];
+  const squad     = PLAYERS.length;
 
   return (
     <div style={{
       minHeight: "100vh",
-      background: `
-        radial-gradient(ellipse at 15% 55%, rgba(45,90,45,0.35) 0%, transparent 55%),
-        radial-gradient(ellipse at 85% 20%, rgba(201,168,76,0.07) 0%, transparent 45%),
-        var(--ink)
-      `,
+      position: "relative",
       display: "flex",
       flexDirection: "column",
-      position: "relative",
       overflow: "hidden",
     }}>
 
-      {/* Grid overlay */}
+      {/* ── BACKGROUND LAYERS ─────────────────────────────── */}
+
+      {/* Stadium photo */}
+      {bgLoaded && (
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: `url(${MENU_BG})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center 30%",
+          opacity: 0.22,
+          transition: "opacity 1s ease",
+          zIndex: 0,
+        }} />
+      )}
+
+      {/* Gradient overlays */}
       <div style={{
-        position: "absolute", inset: 0, pointerEvents: "none",
-        backgroundImage: `
-          repeating-linear-gradient(0deg,   transparent, transparent 58px, rgba(201,168,76,0.028) 58px, rgba(201,168,76,0.028) 59px),
-          repeating-linear-gradient(90deg,  transparent, transparent 58px, rgba(201,168,76,0.028) 58px, rgba(201,168,76,0.028) 59px)
+        position: "absolute", inset: 0, zIndex: 1,
+        background: `
+          linear-gradient(180deg,
+            rgba(11,20,11,0.85)   0%,
+            rgba(11,20,11,0.4)   35%,
+            rgba(11,20,11,0.55)  65%,
+            rgba(11,20,11,0.96) 100%
+          ),
+          radial-gradient(ellipse at 20% 50%, rgba(45,90,45,0.4) 0%, transparent 60%),
+          radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.08) 0%, transparent 50%)
         `,
       }} />
 
-      {/* Hero */}
+      {/* Grid lines */}
       <div style={{
-        display: "flex", flexDirection: "column", alignItems: "center",
-        padding: "52px 24px 28px",
-        opacity: visible ? 1 : 0,
-        transform: visible ? "none" : "translateY(12px)",
-        transition: "opacity 0.6s ease, transform 0.6s ease",
-      }}>
-        <img
-          src={LOGO} alt="Stags Crest"
-          style={{
-            width: 148, height: 148,
-            objectFit: "contain",
-            animation: "logoGlow 3s ease-in-out infinite alternate",
-          }}
-          onError={e => { e.currentTarget.style.display = "none"; }}
-        />
+        position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
+        backgroundImage: `
+          repeating-linear-gradient(0deg,  transparent, transparent 64px, rgba(201,168,76,0.025) 64px, rgba(201,168,76,0.025) 65px),
+          repeating-linear-gradient(90deg, transparent, transparent 64px, rgba(201,168,76,0.025) 64px, rgba(201,168,76,0.025) 65px)
+        `,
+      }} />
 
-        {/* Title block */}
-        <div style={{ textAlign: "center", marginTop: 20 }}>
+      {/* Noise grain */}
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none",
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
+        opacity: 0.6,
+      }} />
+
+      {/* ── CONTENT ──────────────────────────────────────── */}
+      <div style={{ position: "relative", zIndex: 10, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+
+        {/* Season badge — top bar */}
+        <div style={{
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          padding: "14px 20px",
+          borderBottom: "1px solid rgba(201,168,76,0.1)",
+          opacity: mounted ? 1 : 0,
+          transition: "opacity 0.5s ease",
+        }}>
+          <span style={{ fontSize: "0.62rem", letterSpacing: 4, textTransform: "uppercase", color: "var(--fade)" }}>
+            Season 2025–26
+          </span>
+          <div style={{ display: "flex", gap: 12 }}>
+            {[
+              { val: rec.W, lbl: "W", color: "#5ada5a" },
+              { val: rec.D, lbl: "D", color: "#d4c050" },
+              { val: rec.L, lbl: "L", color: "#e05a5a" },
+            ].map(({ val, lbl, color }) => (
+              <span key={lbl} style={{ fontSize: "0.75rem", color }}>
+                <strong style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1rem" }}>{val}</strong>
+                <span style={{ color: "var(--fade)", marginLeft: 2 }}>{lbl}</span>
+              </span>
+            ))}
+          </div>
+          <span style={{ fontSize: "0.62rem", letterSpacing: 3, textTransform: "uppercase", color: "var(--fade)" }}>
+            Est. 1901
+          </span>
+        </div>
+
+        {/* ── HERO ─────────────────────────────────────── */}
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center",
+          padding: "40px 24px 32px",
+          opacity: mounted ? 1 : 0,
+          transform: mounted ? "none" : "translateY(16px)",
+          transition: "opacity 0.7s ease, transform 0.7s ease",
+        }}>
+
+          {/* Logo with glow ring */}
+          <div style={{ position: "relative", marginBottom: 22 }}>
+            <div style={{
+              position: "absolute", inset: -12,
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(201,168,76,0.18) 0%, transparent 70%)",
+              animation: "logoGlow 3s ease-in-out infinite alternate",
+            }} />
+            <img
+              src={LOGO} alt="Loughborough Stags"
+              style={{ width: 130, height: 130, objectFit: "contain", position: "relative", zIndex: 1 }}
+              onError={e => { e.currentTarget.style.display = "none"; }}
+            />
+          </div>
+
+          {/* Main title */}
           <div style={{
             fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "clamp(2.6rem, 9vw, 4rem)",
-            letterSpacing: 5,
-            color: "var(--gold)",
-            lineHeight: 1,
-          }}>Loughbottom FC</div>
+            fontSize: "clamp(3rem, 10vw, 4.8rem)",
+            letterSpacing: 6,
+            lineHeight: 0.92,
+            textAlign: "center",
+            background: "linear-gradient(180deg, #e8c96a 0%, #c9a84c 50%, #8b6914 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}>
+            Loughbottom FC
+          </div>
 
+          {/* Subtitle — italic serif */}
           <div style={{
             fontFamily: "'Playfair Display', serif",
             fontStyle: "italic",
-            fontSize: "clamp(0.9rem, 3vw, 1.1rem)",
+            fontSize: "clamp(0.85rem, 2.5vw, 1.05rem)",
             color: "var(--fade)",
             letterSpacing: 3,
-            marginTop: 7,
-          }}>The Last Leap</div>
-        </div>
-
-        {/* Gold rule */}
-        <div style={{
-          width: 72, height: 1,
-          background: "linear-gradient(90deg, transparent, var(--gold), transparent)",
-          margin: "22px auto",
-        }} />
-
-        {/* Season record pill */}
-        <div style={{
-          display: "flex", gap: 0,
-          border: "1px solid var(--border)",
-          overflow: "hidden",
-          fontSize: "0.78rem",
-        }}>
-          {[
-            { label: "W", val: rec.W, color: "#5ada5a" },
-            { label: "D", val: rec.D, color: "#d4c050" },
-            { label: "L", val: rec.L, color: "#e05a5a" },
-          ].map(({ label, val, color }) => (
-            <div key={label} style={{
-              padding: "8px 18px",
-              textAlign: "center",
-              borderRight: label !== "L" ? "1px solid var(--border)" : "none",
-              background: "var(--glass)",
-            }}>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.3rem", color, lineHeight: 1 }}>{val}</div>
-              <div style={{ fontSize: "0.6rem", letterSpacing: 2, color: "var(--fade)", marginTop: 2 }}>{label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Next match */}
-        {nextMatch && (
-          <div style={{
-            marginTop: 14,
-            fontSize: "0.78rem",
-            color: "var(--fade)",
-            letterSpacing: 1,
+            marginTop: 10,
             textAlign: "center",
           }}>
-            Next · <span style={{ color: "var(--cream)" }}>{nextMatch.opponent}</span>
-            {" · "}
-            <span style={{ color: "var(--gold)" }}>{nextMatch.venue}</span>
+            The Last Leap
           </div>
-        )}
-      </div>
 
-      {/* Nav */}
-      <nav style={{
-        display: "flex", flexDirection: "column",
-        gap: 8, padding: "0 20px 12px",
-        opacity: visible ? 1 : 0,
-        transition: "opacity 0.7s ease 0.2s",
-      }}>
-        {nav.map((item, i) => (
-          <button
-            key={item.screen}
-            onClick={() => onGo(item.screen)}
-            style={{
-              background: "var(--glass)",
-              border: "1px solid var(--border)",
-              color: "var(--cream)",
-              padding: "15px 18px",
-              textAlign: "left",
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              transition: "all 0.22s ease",
-              animation: `pageFade 0.4s ease ${0.1 + i * 0.07}s both`,
-              position: "relative",
-              overflow: "hidden",
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = "var(--glass-gold)";
-              e.currentTarget.style.borderColor = "rgba(201,168,76,0.45)";
-              e.currentTarget.style.transform = "translateX(4px)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = "var(--glass)";
-              e.currentTarget.style.borderColor = "var(--border)";
-              e.currentTarget.style.transform = "none";
-            }}
-          >
-            {/* Left accent */}
-            <div style={{
-              position: "absolute", left: 0, top: 0, bottom: 0,
-              width: 3, background: "var(--gold)", opacity: 0,
-              transition: "opacity 0.2s",
-            }} />
-            <span style={{ fontSize: "1.3rem", width: 26 }}>{item.icon}</span>
-            <div style={{ flex: 1 }}>
-              <div style={{
-                fontFamily: "'Crimson Pro', serif",
-                fontWeight: 600,
-                fontSize: "1.05rem",
-                letterSpacing: 1,
-                textTransform: "uppercase",
-              }}>{item.label}</div>
-              <div style={{ fontSize: "0.75rem", color: "var(--fade)", marginTop: 1 }}>{item.sub}</div>
+          {/* Thin gold rule with diamond */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0" }}>
+            <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, transparent, var(--gold))" }} />
+            <div style={{ color: "var(--gold)", fontSize: "0.5rem" }}>◆</div>
+            <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, var(--gold), transparent)" }} />
+          </div>
+
+          {/* Next match pill */}
+          {nextMatch ? (
+            <div
+              onClick={() => onGo("fixtures")}
+              style={{
+                background: "rgba(201,168,76,0.08)",
+                border: "1px solid rgba(201,168,76,0.25)",
+                padding: "10px 20px",
+                cursor: "pointer",
+                textAlign: "center",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(201,168,76,0.14)"}
+              onMouseLeave={e => e.currentTarget.style.background = "rgba(201,168,76,0.08)"}
+            >
+              <div style={{ fontSize: "0.6rem", letterSpacing: 3, textTransform: "uppercase", color: "var(--gold)", marginBottom: 3 }}>
+                Next Match
+              </div>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "0.95rem" }}>
+                vs {nextMatch.opponent}
+                <span style={{ color: "var(--fade)", fontWeight: 400, fontStyle: "italic", marginLeft: 8 }}>
+                  · {nextMatch.venue} · {nextMatch.round}
+                </span>
+              </div>
             </div>
-            <span style={{ color: "var(--gold)", opacity: 0.5, fontSize: "1.1rem" }}>›</span>
-          </button>
-        ))}
-      </nav>
+          ) : (
+            <div style={{ fontSize: "0.75rem", color: "var(--fade)", letterSpacing: 2 }}>
+              {rec.played} matches played this season
+            </div>
+          )}
+        </div>
 
-      {/* Footer */}
-      <div style={{
-        textAlign: "center",
-        padding: "14px 20px 28px",
-        fontSize: "0.68rem",
-        letterSpacing: 3,
-        textTransform: "uppercase",
-        color: "var(--fade)",
-        borderTop: "1px solid rgba(201,168,76,0.08)",
-        marginTop: "auto",
-        opacity: visible ? 1 : 0,
-        transition: "opacity 0.8s ease 0.4s",
-      }}>
-        Loughborough University Stags · Est. 1901 · Season 2025–26
+        {/* ── NAV BUTTONS ──────────────────────────────── */}
+        <nav style={{
+          display: "flex", flexDirection: "column",
+          gap: 6, padding: "0 16px",
+          flex: 1,
+        }}>
+          {NAV.map((item, i) => (
+            <NavBtn
+              key={item.screen}
+              item={item}
+              index={i}
+              mounted={mounted}
+              onGo={onGo}
+            />
+          ))}
+        </nav>
+
+        {/* ── FOOTER ───────────────────────────────────── */}
+        <div style={{
+          textAlign: "center",
+          padding: "16px 20px 24px",
+          borderTop: "1px solid rgba(201,168,76,0.07)",
+          marginTop: 12,
+          opacity: mounted ? 1 : 0,
+          transition: "opacity 0.9s ease 0.6s",
+        }}>
+          <div style={{ fontSize: "0.6rem", letterSpacing: 4, textTransform: "uppercase", color: "rgba(107,122,90,0.5)" }}>
+            Proud · Noble · Forever
+          </div>
+        </div>
+
       </div>
     </div>
   );
+}
+
+function NavBtn({ item, index, mounted, onGo }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <button
+      onClick={() => onGo(item.screen)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered ? `rgba(${hexToRgb(item.accent)},0.08)` : "rgba(255,255,255,0.03)",
+        border: `1px solid ${hovered ? item.accent + "55" : "rgba(201,168,76,0.12)"}`,
+        color: "var(--cream)",
+        padding: "13px 16px",
+        textAlign: "left",
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        cursor: "pointer",
+        transition: "all 0.22s ease",
+        transform: hovered ? "translateX(5px)" : "none",
+        opacity: mounted ? 1 : 0,
+        animation: mounted ? `pageFade 0.45s ease ${0.15 + index * 0.07}s both` : "none",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Left accent bar */}
+      <div style={{
+        position: "absolute", left: 0, top: 0, bottom: 0,
+        width: 3,
+        background: item.accent,
+        opacity: hovered ? 1 : 0,
+        transition: "opacity 0.2s",
+      }} />
+
+      {/* Icon box */}
+      <div style={{
+        width: 38, height: 38,
+        background: hovered ? `rgba(${hexToRgb(item.accent)},0.15)` : "rgba(255,255,255,0.04)",
+        border: `1px solid ${hovered ? item.accent + "40" : "rgba(255,255,255,0.06)"}`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: "1.15rem",
+        flexShrink: 0,
+        transition: "all 0.22s",
+      }}>
+        {item.icon}
+      </div>
+
+      {/* Text */}
+      <div style={{ flex: 1 }}>
+        <div style={{
+          fontFamily: "'Crimson Pro', serif",
+          fontWeight: 600,
+          fontSize: "1rem",
+          letterSpacing: 1.5,
+          textTransform: "uppercase",
+          color: hovered ? item.accent : "var(--cream)",
+          transition: "color 0.2s",
+          lineHeight: 1.2,
+        }}>{item.label}</div>
+        <div style={{
+          fontSize: "0.72rem",
+          color: "var(--fade)",
+          marginTop: 2,
+          fontStyle: "italic",
+        }}>{item.sub}</div>
+      </div>
+
+      {/* Arrow */}
+      <span style={{
+        fontFamily: "'Bebas Neue', sans-serif",
+        fontSize: "1.2rem",
+        color: hovered ? item.accent : "var(--fade)",
+        opacity: hovered ? 1 : 0.4,
+        transition: "all 0.2s",
+        transform: hovered ? "translateX(3px)" : "none",
+      }}>›</span>
+    </button>
+  );
+}
+
+// Helper — convert hex to rgb string for rgba()
+function hexToRgb(hex) {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0,2), 16);
+  const g = parseInt(h.substring(2,4), 16);
+  const b = parseInt(h.substring(4,6), 16);
+  return `${r},${g},${b}`;
 }
