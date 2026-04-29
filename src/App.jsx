@@ -1,4 +1,7 @@
 // src/App.jsx
+// PlayerProfile is rendered inside Roster.jsx — no separate route needed.
+// Roster manages its own internal state for which player is open.
+
 import { useState } from "react";
 import MainMenu    from "./screens/MainMenu.jsx";
 import Chapters    from "./screens/Chapters.jsx";
@@ -9,7 +12,7 @@ import Kits        from "./screens/Kits.jsx";
 import About       from "./screens/About.jsx";
 
 export default function App() {
-  const [screen, setScreen]   = useState("menu");
+  const [screen,  setScreen]  = useState("menu");
   const [chapter, setChapter] = useState(null);
   const [fixture, setFixture] = useState(null);
 
@@ -21,13 +24,13 @@ export default function App() {
 
   return (
     <>
-      {screen === "menu"     && <MainMenu onGo={go} />}
-      {screen === "chapters" && <Chapters onGo={go} />}
-      {screen === "reader"   && <Reader   onGo={go} chapter={chapter} />}
-      {screen === "roster"   && <Roster   onGo={go} />}
-      {screen === "fixtures" && <Fixtures onGo={go} activeFixture={fixture} />}
-      {screen === "kits"     && <Kits     onGo={go} />}
-      {screen === "about"    && <About    onGo={go} />}
+      {screen === "menu"     && <MainMenu    onGo={go} />}
+      {screen === "chapters" && <Chapters    onGo={go} />}
+      {screen === "reader"   && <Reader      onGo={go} chapter={chapter} />}
+      {screen === "roster"   && <Roster      onGo={go} />}
+      {screen === "fixtures" && <Fixtures    onGo={go} activeFixture={fixture} />}
+      {screen === "kits"     && <Kits        onGo={go} />}
+      {screen === "about"    && <About       onGo={go} />}
     </>
   );
 }
